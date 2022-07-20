@@ -1,4 +1,4 @@
-from example_interfaces.srv import AddTwoInts
+from data_structures.srv import Boolsa
 
 import rclpy
 from rclpy.node import Node
@@ -7,11 +7,11 @@ from rclpy.node import Node
 class Service(Node):
     def __init__(self):
         super().__init__('service')
-        self.service = self.create_service(AddTwoInts, 'add_two_ints', self.add_two_ints_callback)
+        self.service = self.create_service(Boolsa, 'boolsa', self.add_two_ints_callback)
 
     def add_two_ints_callback(self, request, response):
-        response.sum = request.a + request.b
-        self.get_logger().info('Incoming request\na: %d b: %d' % (request.a, request.b))
+        response.response = not request.request
+        self.get_logger().info(f'I got {request.request}')
 
         return response
 
@@ -20,10 +20,7 @@ def main(args=None):
     rclpy.init(args=args)
 
     service = Service()
-    try:
-        rclpy.spin(service)
-    except KeyboardInterrupt:
-        pass
+    rclpy.spin(service)
 
     rclpy.shutdown()
 

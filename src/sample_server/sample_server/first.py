@@ -2,11 +2,11 @@ import rclpy
 from rclpy.node import Node
 from rclpy.publisher import Publisher
 
-from std_msgs.msg import Int8
+from std_msgs.msg import Bool
 
 
 class First(Node):
-    """ A ROS2 Publisher that publishes and Int8 with value '5' on an infinite loop on topic 'first'
+    """ A ROS2 Publisher that publishes and Int8 with value True on an infinite loop on topic 'first'
 
     :ivar publisher_: the publisher
     """
@@ -15,14 +15,14 @@ class First(Node):
     def __init__(self) -> None:
         """ Initializer """
         super().__init__('first')
-        self.publisher_ = self.create_publisher(Int8, 'first', 10)
+        self.publisher_ = self.create_publisher(Bool, 'first', 10)
 
     def run(self):
         """ Sends the message on the publisher """
-        msg = Int8()
-        msg.data = 5
+        msg = Bool()
+        msg.data = True
         self.publisher_.publish(msg)
-        self.get_logger().info(f'Publishing: "{msg.data}"')
+        self.get_logger().info(f'Publishing: {msg.data}')
 
 
 def main(args=None):

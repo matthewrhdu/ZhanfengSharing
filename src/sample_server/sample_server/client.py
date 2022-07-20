@@ -1,4 +1,4 @@
-from example_interfaces.srv import AddTwoInts
+from data_structures.srv import Boolsa
 
 import rclpy
 from rclpy.node import Node
@@ -7,7 +7,7 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.client import Client
 from rclpy.subscription import Subscription
 
-from std_msgs.msg import Int8
+from std_msgs.msg import Bool
 
 from threading import Thread
 
@@ -16,52 +16,44 @@ class Client(Node):
 
     :ivar client: The client to do things with. In this case, it is the one found in the tutorial since I am lazy :)
     :ivar first_subscription: The subscription to the first publisher
-    :ivar second_subscription: The subscription to the second publisher
+    :ivar first: The value from the first subscriber
     """
     client: Client
     first_subscription: Subscription
-    second_subscription: Subscription
 
     def __init__(self) -> None:
         """ Initializer """
         super().__init__('client')            
-        self.client = self.create_client(AddTwoInts, 'add_two_ints', callback_group=MutuallyExclusiveCallbackGroup())
+        self.client = self.create_client(Boolsa, 'boolsa', callback_group=MutuallyExclusiveCallbackGroup())
 
         while not self.client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('service not available, waiting again...')
         
-        self.first_subscription = self.create_subscription(Int8, 'first', self.first_callback, 10, callback_group=MutuallyExclusiveCallbackGroup())
+        self.first_subscription = self.create_subscription(Bool, 'first', self.first_callback, 10, callback_group=MutuallyExclusiveCallbackGroup())
         self.first = None
-
-        self.second_subscription = self.create_subscription(Int8, 'second', self.second_callback, 10, callback_group=MutuallyExclusiveCallbackGroup())
-        self.second = None
 
     def first_callback(self, msg) -> None:
         """ The callback function for the first subscriber """
-        self.first = int(msg.data)
-
-    def second_callback(self, msg) -> None:
-        """ The callback function for the second subscriber """
-        self.second = int(msg.data)
+        self.first = bool(msg.data)
 
     def send_request(self) -> None:
         """ Sending a request """
         self.get_logger().info("Waiting for publishers")
-        while self.first is None or self.second is None:
+        
+        # Since we are on another thread in this function, this won't run forever. This simply blocks execution on this thread until self.first has been set. Then, it continues.
+        while self.first is None:
             pass
-        
-        self.get_logger().info("Both requests received")
-        req = AddTwoInts.Request()
-        req.a = self.first
-        req.b = self.second
 
+        self.get_logger().info("Both requests received")
+        request = Boolsa.Request()
+        request.request = self.first
         
-        future = self.client.call_async(req)
+        future = self.client.call_async(request)
         self.get_logger().info("Requests Sent")
         while not future.done():
             pass
         
-        self.get_logger().info(f'Response Received: {self.first} + {self.second} = {future.result().sum}')
+        self.get_logger().info(f'Response Received: not {self.first} = {future.result().response}')
 
 
 def main(args=None):

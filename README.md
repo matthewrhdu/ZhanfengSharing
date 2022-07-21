@@ -16,5 +16,3 @@ in the following order
 1. `server`
 2. `first` *or* `second` **NOT BOTH**
 3. `client`
-
-OMG

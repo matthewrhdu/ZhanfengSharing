@@ -4,6 +4,7 @@ from rclpy.publisher import Publisher
 
 from std_msgs.msg import Bool
 
+from time import sleep
 
 class Second(Node):
     """ A ROS2 Publisher that publishes an Bool with value False on an infinite loop on topic 'first'
@@ -37,6 +38,7 @@ def main(args=None):
         try:
             # This does NOT need to be spun, since there is no callback in the node.
             second.run()
+            sleep(5)
         
         # This is just so when [ctrl-C] is pressed, the loop can exit and the node can be destroyed (This is not necessary since the garbage cleaner will pick it up)
         except KeyboardInterrupt:

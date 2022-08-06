@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 
-#usage: ./prepare <commit message>
+#usage: ./prepare '<commit message>'
+# DO NOT FORGET THE '' QUOTES
 
 # This checks that you have one command line argument
 if [ $# -ne 1 ]

@@ -1,15 +1,8 @@
 import sys
-import time
-from timeit import timeit
 import numpy as np
-import cv2 as cv
 import open3d as o3d
 import pyrealsense2 as rs
-from typing import Tuple
 import time
-
-from multiprocessing import Process
-import matplotlib.pyplot as plt
 
 
 class Camera:

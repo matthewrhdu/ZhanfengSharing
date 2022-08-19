@@ -3,6 +3,8 @@ import numpy as np
 import open3d as o3d
 import pyrealsense2 as rs
 import time
+import cv2 as cv
+import matplotlib.pyplot as plt
 
 
 class Camera:
@@ -44,6 +46,7 @@ class Camera:
         self.config.enable_stream(rs.stream.color, rs.format.bgr8, 30)
 
         device_product_line = str(device.get_info(rs.camera_info.product_line))
+
         # Configure the pipeline to stream different resolutions of color and depth streams
         self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)  # config depth stream
         if device_product_line == 'L500':
@@ -70,16 +73,38 @@ class Camera:
 def capture_point_cloud_xyz(camera: Camera, i: int):
     img, depth_img = camera.capture_rgbd_images()
 
-    np.save(f'images/img{i}.npy', img)
-    np.save(f'depth_images/img{i}.npy', depth_img)
+    cv.imwrite(f'images/img{i}.png', img)
+    cv.imwrite(f'depth_images/img{i}.png', depth_img)
 
-    depth_img[depth_img < 1300] = 0
+    # depth_img[depth_img < 1300] = 0
 
-    rgb_d_img = o3d.geometry.RGBDImage.create_from_color_and_depth(img, depth_img)
-    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgb_d_img)
+    img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+
+    o3d_img = o3d.geometry.Image(img)
+    o3d_depth_img = o3d.geometry.Image(depth_img)
+    rgb_d_img = o3d.geometry.RGBDImage.create_from_color_and_depth(o3d_img, o3d_depth_img, convert_rgb_to_intensity=False)
+    o3d.visualization.draw_geometries([rgb_d_img])
+
+
+    pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
+        rgb_d_img,
+        o3d.camera.PinholeCameraIntrinsic(o3d.camera.PinholeCameraIntrinsicParameters.PrimeSenseDefault)
+    )
+
+    # rgb_d_img = o3d.geometry.RGBDImage()
+    # pcd = o3d.geometry.PointCloud()
+
+    # rgb_d_img = pcd.RGBDImage
+    plt.subplot(1, 2, 1)
+    plt.title('Redwood grayscale image')
+    plt.imshow(rgb_d_img.color)
+    plt.subplot(1, 2, 2)
+    plt.title('Redwood depth image')
+    plt.imshow(rgb_d_img.depth)
+    plt.show()
 
     o3d.visualization.draw_geometries([pcd], width=640, height=540)
-    o3d.io.write_point_cloud(f'point clouds/img{i}.ply', pcd)
+    o3d.io.write_point_cloud(f'point_clouds/img{i}.ply', pcd, write_ascii=True)
 
 
 def main(delay: float):
@@ -98,8 +123,8 @@ def main(delay: float):
 
 
 if __name__ == "__main__":
-    delay_ = float(sys.argv[1])
-
+    # delay_ = float(sys.argv[1])
+    delay_ = 5.0
     print(f"Starting... waiting for {delay_} seconds...")
     main(delay_)
 
